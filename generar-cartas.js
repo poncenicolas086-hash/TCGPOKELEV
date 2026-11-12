@@ -19,16 +19,18 @@ function rareza(exp, file, name) {
   if (/(^|[\s_-])(ex|v)([\s_-]|$)/i.test(name) || TOP.test(name)) return 'SR';
   const h = hash(exp + file); return h < 55 ? 'C' : h < 85 ? 'UC' : 'R';
 }
+
+const SUPABASE_STORAGE_URL = 'https://irqccifpkkpgpbaepgbo.supabase.co/storage/v1/object/public/cartas/';
 const lista = [];
 const add = (exp, file, rel) => {
   const name = file.replace(IMG, '').replace(/[_-]+/g, ' ').trim();
-  lista.push({ id: lista.length, n: name, e: exp, r: rareza(exp, file, name), f: rel });
+  lista.push({ id: lista.length, n: name, e: exp, r: rareza(exp, file, name), f: SUPABASE_STORAGE_URL + rel });
 };
 for (const d of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
   if (d.isDirectory()) {
     for (const f of fs.readdirSync(path.join(dir, d.name)).filter(f => IMG.test(f)).sort())
-      add(d.name, f, 'cartas/' + encodeURIComponent(d.name) + '/' + encodeURIComponent(f));
-  } else if (IMG.test(d.name)) add('General', d.name, 'cartas/' + encodeURIComponent(d.name));
+      add(d.name, f, encodeURIComponent(d.name) + '/' + encodeURIComponent(f));
+  } else if (IMG.test(d.name)) add('General', d.name, encodeURIComponent(d.name));
 }
 fs.writeFileSync(path.join(__dirname, 'cartas.js'), 'window.CARTAS=' + JSON.stringify(lista) + ';\n');
 const cnt = {}; lista.forEach(c => cnt[c.r] = (cnt[c.r] || 0) + 1);
