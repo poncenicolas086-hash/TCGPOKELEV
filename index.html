@@ -177,13 +177,24 @@ function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
   save();col();toast('Importadas '+ok+' cartas ('+nw+' nuevas)'+(no?' · '+no+' no encontradas':''))}
   catch(e){toast('Archivo no válido')}inp.value=''};
  r.readAsText(f)}
-let so='r',ex='';
+let so='r',sd=-1,ex='';
+function sortCards(cards,obtainedAt){
+ return cards.sort((a,b)=>{
+  const primary=so==='n'?a.n.localeCompare(b.n):so==='o'?obtainedAt(a)-obtainedAt(b):R.indexOf(a.r)-R.indexOf(b.r);
+  return sd*primary||a.n.localeCompare(b.n);
+ });
+}
+function sortControls(){
+ const directions=so==='n'?[['A-Z',1],['Z-A',-1]]:so==='r'?[['Menor a Mayor',1],['Mayor a Menor',-1]]:[['Mas antigua',1],['Mas reciente',-1]];
+ return `Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtencion']].map(([key,label])=>`<button class="chip${so===key?' on':''}" onclick="so='${key}';sd=${key==='n'?1:-1};col()">${label}</button>`).join('')}
+ Direccion: ${directions.map(([label,direction])=>`<button class="chip${sd===direction?' on':''}" onclick="sd=${direction};col()">${label}</button>`).join('')}`;
+}
 function colOnline(rows){
- const owned=new Map(rows.map(item=>[item.card_id,item])),own=C.filter(card=>{const item=owned.get(card.id);return item&&item.quantity>0}),rk=card=>R.indexOf(card.r);
- const list=C.filter(card=>!ex||card.e==ex).sort(so=='n'?(a,b)=>a.n.localeCompare(b.n):so=='o'?(a,b)=>(owned.get(b.id)?.obtained_at||'').localeCompare(owned.get(a.id)?.obtained_at||''):(a,b)=>rk(b)-rk(a)||a.n.localeCompare(b.n));
+ const owned=new Map(rows.map(item=>[item.card_id,item])),own=C.filter(card=>{const item=owned.get(card.id);return item&&item.quantity>0});
+ const list=sortCards(C.filter(card=>!ex||card.e==ex),card=>Date.parse(owned.get(card.id)?.obtained_at||'')||0);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Colección online</h3><small>Sincronizada con tu cuenta · Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const total=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return total?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/total*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${total}<i></i></div>`:''}).join('')}</div></section>
- <section class="box" style="max-width:none">Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtención']].map(([k,t])=>`<button class="chip${so==k?' on':''}" onclick="so='${k}';col()">${t}</button>`).join('')}
+ <section class="box" style="max-width:none">${sortControls()}
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${[...new Set(C.map(card=>card.e))].map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
  <div class="grid">${list.map(card=>{const item=owned.get(card.id);return item&&item.quantity>0?`<div class="k" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no"><img src="${cardImageUrl(card)}" loading="lazy"><span>#${card.id+1}</span></div>`}).join('')}</div>`
 }
@@ -194,12 +205,12 @@ function col(){
   window.TCGOnline.collection().then(rows=>{window.TCGOnlineCollection=rows;if(window.TCGCurrentView===1)colOnline(rows)}).catch(error=>toast(error.message||'No se pudo cargar la colección'));
   return;
  }
- const own=C.filter(c=>s.own[c.id]),exs=[...new Set(C.map(c=>c.e))],rk=c=>R.indexOf(c.r),ot=c=>s.own[c.id]?s.own[c.id].t:0;
- const l=C.filter(c=>!ex||c.e==ex).sort(so=='n'?(a,b)=>a.n.localeCompare(b.n):so=='o'?(a,b)=>ot(b)-ot(a):(a,b)=>rk(b)-rk(a)||a.n.localeCompare(b.n));
+ const own=C.filter(c=>s.own[c.id]),exs=[...new Set(C.map(c=>c.e))];
+ const l=sortCards(C.filter(c=>!ex||c.e==ex),card=>s.own[card.id]?.t||0);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Estadísticas de colección</h3><small>Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const t=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return t?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/t*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${t}<i></i></div>`:''}).join('')}</div></section>
  <section class="box" style="max-width:none">Respaldo: <button class="chip" onclick="exportar()">Exportar colección</button> <button class="chip" onclick="imp.click()">Importar colección</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importar(this)"> <small>Se guarda solo en este navegador: exportá de vez en cuando para no perderla.</small></section>
- <section class="box" style="max-width:none">Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtención']].map(([k,t])=>`<button class="chip${so==k?' on':''}" onclick="so='${k}';col()">${t}</button>`).join('')}
+ <section class="box" style="max-width:none">${sortControls()}
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${exs.map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
  <div class="grid">${l.map(c=>{const o=s.own[c.id];return o?`<div class="k" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id)}<b class="x">x${o.c}</b></div>`:`<div class="k no"><img src="${cardImageUrl(c)}" loading="lazy"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
 function zoom(id){const c=C[id];
