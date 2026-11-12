@@ -25,6 +25,7 @@ const h = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 })[char]);
 const rarityColor = { C: '#8C9BAE', UC: '#4ADE80', R: '#3399FF', SR: '#A855F7', UR: '#FFCB05' };
+const cardName = card => card.name || window.TCGCardName?.(card) || card.n;
 const cardInfo = row => catalogById.get(row.card_id ?? row.id) || {
   id: row.card_id ?? row.id,
   n: row.name || row.cards?.name || `Carta ${row.card_id ?? row.id}`,
@@ -48,8 +49,8 @@ const toast = message => {
 function cardRow(row, quantity, controls = '') {
   const card = cardInfo(row);
   return `<div class="trade-row">
-    <img src="${h(cardImage(row))}" alt="${h(card.n)}" loading="lazy">
-    <span class="trade-card-copy"><b>${h(card.n)}</b><small>${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r || 'Carta')}</i></small></span>
+    <img src="${h(cardImage(row))}" alt="${h(cardName(card))}" loading="lazy">
+    <span class="trade-card-copy"><b>${h(cardName(card))}</b><small>${h(card.n)} · ${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r || 'Carta')}</i></small></span>
     ${controls || `<span class="trade-qty">x${h(quantity)}</span>`}
   </div>`;
 }
@@ -119,15 +120,15 @@ function pickerRows(kind, rows) {
   const filter = state.filters[kind].trim().toLocaleLowerCase();
   const matched = rows.filter(row => {
     const card = cardInfo(row);
-    return !filter || `${card.n} ${card.e} ${card.r}`.toLocaleLowerCase().includes(filter);
+    return !filter || `${cardName(card)} ${card.n} ${card.e} ${card.r}`.toLocaleLowerCase().includes(filter);
   }).slice(0, 60);
   if (!matched.length) return '<div class="trade-empty">No hay cartas para mostrar con ese filtro.</div>';
   return matched.map(row => {
     const card = cardInfo(row);
     const qty = selection[card.id] || 0;
     const max = kind === 'offer' ? available(row) : 99;
-    return `<div class="trade-row"><img src="${h(cardImage(row))}" alt="${h(card.n)}" loading="lazy">
-      <span class="trade-card-copy"><b>${h(card.n)}</b><small>${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r)}</i>${kind === 'offer' ? ` · Disponibles: ${max}` : ''}</small></span>
+    return `<div class="trade-row"><img src="${h(cardImage(row))}" alt="${h(cardName(card))}" loading="lazy">
+      <span class="trade-card-copy"><b>${h(cardName(card))}</b><small>${h(card.n)} · ${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r)}</i>${kind === 'offer' ? ` · Disponibles: ${max}` : ''}</small></span>
       <span class="trade-stepper" data-kind="${kind}" data-id="${card.id}"><button data-action="decrease" data-kind="${kind}" data-id="${card.id}" aria-label="Quitar una copia" ${qty <= 0 ? 'disabled' : ''}>−</button><b data-quantity>${qty}</b><button data-action="increase" data-kind="${kind}" data-id="${card.id}" data-max="${max}" aria-label="Agregar una copia" ${qty >= max ? 'disabled' : ''}>+</button></span>
     </div>`;
   }).join('');

@@ -9,6 +9,7 @@ export default defineConfig({
       const output = resolve('dist');
       mkdirSync(output, { recursive: true });
       cpSync(resolve('cartas.js'), resolve(output, 'cartas.js'));
+      cpSync(resolve('nombres-cartas.js'), resolve(output, 'nombres-cartas.js'));
       cpSync(resolve('assets'), resolve(output, 'assets'), { recursive: true });
     }
   }]

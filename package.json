@@ -6,6 +6,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
+    "generate:card-names": "node generar-nombres-cartas.mjs",
     "seed:cards": "node supabase/seed-cards.mjs",
     "generate:cards": "node generar-cartas.js"
   },

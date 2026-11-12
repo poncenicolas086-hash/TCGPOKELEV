@@ -84,6 +84,7 @@ main{max-width:1000px;margin:auto;padding:20px}
 <header><button id="t0" class="on" onclick="go(0)">Gacha</button><button id="t1" onclick="go(1)">Colección</button><button id="t2" onclick="go(2)">Intercambios</button></header>
 <main id="m"></main><main id="tradeApp" class="trade-app" hidden></main><div id="md" onclick="this.style.display='none'"></div><div id="ts"></div>
 <script src="cartas.js"></script>
+<script src="nombres-cartas.js"></script>
 <script type="module" src="/trades-ui.js"></script>
 <script>
 const C=window.CARTAS||[],R=['C','UC','R','SR','UR'],K='tcg_levi_v1',
@@ -97,6 +98,15 @@ if(!Number.isFinite(s.total))s.total=0;
 if(s.day!==today()){s.day=today();s.m={};s.cl={}}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}};
 const STORAGE='https://irqccifpkkpgpbaepgbo.supabase.co/storage/v1/object/public/cartas/';
+function cardCode(card){
+ const promo=card.n.match(/^PROMO ([AB]) (\d{3})/i);
+ if(promo)return `P-${promo[1].toUpperCase()}-${promo[2]}`;
+ const regular=card.n.match(/^([A-Z]\d[a-z]?) (\d{3})/);
+ return regular?`${regular[1]}-${regular[2]}`:null;
+}
+function cardTitle(card){return card.name||window.TCG_CARD_NAMES?.[cardCode(card)]||card.n}
+function escapeAttribute(value){return String(value??'').replace(/[&"<>]/g,char=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[char]))}
+window.TCGCardName=cardTitle;
 function cardImageUrl(card){
  const source=String(card?.f||'');
  const storageBase=window.TCGStorageBase||STORAGE,marker='/storage/v1/object/public/cartas/';
@@ -112,7 +122,7 @@ function cardImageUrl(card){
  }).join('/');
 }
 window.TCGCardImage=cardImageUrl;
-const face=(id,loading='lazy')=>{const c=C[id];return `<img src="${cardImageUrl(c)}" loading="${loading}"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
+const face=(id,loading='lazy')=>{const c=C[id];return `<img src="${cardImageUrl(c)}" alt="${cardTitle(c)}" title="${cardTitle(c)}" loading="${loading}"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
 function toast(t){ts.textContent=t;ts.style.opacity=1;setTimeout(()=>ts.style.opacity=0,2400)}
 function roll(guarantee=null){const out=[],n=Math.min(5,C.length);
  while(out.length<n){
@@ -179,10 +189,10 @@ function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
   save();col();toast('Importadas '+ok+' cartas ('+nw+' nuevas)'+(no?' · '+no+' no encontradas':''))}
   catch(e){toast('Archivo no válido')}inp.value=''};
  r.readAsText(f)}
-let so='r',sd=-1,ex='',collectionCards=[],collectionObtainedAt=()=>0;
+let so='r',sd=-1,ex='',q='',collectionCards=[],collectionObtainedAt=()=>0;
 function sortCards(cards,obtainedAt){
  return cards.sort((a,b)=>{
-  const primary=so==='n'?a.n.localeCompare(b.n):so==='o'?obtainedAt(a)-obtainedAt(b):R.indexOf(a.r)-R.indexOf(b.r);
+  const primary=so==='n'?cardTitle(a).localeCompare(cardTitle(b)):so==='o'?obtainedAt(a)-obtainedAt(b):R.indexOf(a.r)-R.indexOf(b.r);
   return sd*primary||a.n.localeCompare(b.n);
  });
 }
@@ -206,12 +216,12 @@ function setSort(key,direction){
 }
 function colOnline(rows){
  const owned=new Map(rows.map(item=>[item.card_id,item])),own=C.filter(card=>{const item=owned.get(card.id);return item&&item.quantity>0});
- collectionCards=C.filter(card=>!ex||card.e==ex);
+ collectionCards=C.filter(card=>(!ex||card.e==ex)&&(!q||`${cardTitle(card)} ${card.n} ${card.e}`.toLocaleLowerCase().includes(q)));
  collectionObtainedAt=card=>Date.parse(owned.get(card.id)?.obtained_at||'')||0;
  const list=sortCards(collectionCards.slice(),collectionObtainedAt);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Colección online</h3><small>Sincronizada con tu cuenta · Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const total=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return total?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/total*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${total}<i></i></div>`:''}).join('')}</div></section>
- <section class="box" style="max-width:none"><div data-sort-controls>${sortControls()}</div>
+ <section class="box" style="max-width:none"><input class="trade-search" id="collectionSearch" value="${escapeAttribute(q)}" placeholder="Buscar por nombre o número de carta"><div data-sort-controls>${sortControls()}</div>
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${[...new Set(C.map(card=>card.e))].map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
  <div class="grid">${list.map((card,index)=>{const item=owned.get(card.id),loading=index<12?'eager':'lazy';return item&&item.quantity>0?`<div class="k" data-card-id="${card.id}" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id,loading)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no" data-card-id="${card.id}"><img src="${cardImageUrl(card)}" loading="${loading}"><span>#${card.id+1}</span></div>`}).join('')}</div>`
 }
@@ -223,17 +233,25 @@ function col(){
   return;
  }
  const own=C.filter(c=>s.own[c.id]),exs=[...new Set(C.map(c=>c.e))];
- collectionCards=C.filter(c=>!ex||c.e==ex);
+ collectionCards=C.filter(c=>(!ex||c.e==ex)&&(!q||`${cardTitle(c)} ${c.n} ${c.e}`.toLocaleLowerCase().includes(q)));
  collectionObtainedAt=card=>s.own[card.id]?.t||0;
  const l=sortCards(collectionCards.slice(),collectionObtainedAt);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Estadísticas de colección</h3><small>Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const t=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return t?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/t*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${t}<i></i></div>`:''}).join('')}</div></section>
  <section class="box" style="max-width:none">Respaldo: <button class="chip" onclick="exportar()">Exportar colección</button> <button class="chip" onclick="imp.click()">Importar colección</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importar(this)"> <small>Se guarda solo en este navegador: exportá de vez en cuando para no perderla.</small></section>
- <section class="box" style="max-width:none"><div data-sort-controls>${sortControls()}</div>
+ <section class="box" style="max-width:none"><input class="trade-search" id="collectionSearch" value="${escapeAttribute(q)}" placeholder="Buscar por nombre o número de carta"><div data-sort-controls>${sortControls()}</div>
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${exs.map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
  <div class="grid">${l.map((c,index)=>{const o=s.own[c.id],loading=index<12?'eager':'lazy';return o?`<div class="k" data-card-id="${c.id}" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id,loading)}<b class="x">x${o.c}</b></div>`:`<div class="k no" data-card-id="${c.id}"><img src="${cardImageUrl(c)}" loading="${loading}"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
 function zoom(id){const c=C[id];
- md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id)}</div></div><div>${c.n} · ${c.e}</div>`;md.style.display='flex'}
+ md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id)}</div></div><div><b>${cardTitle(c)}</b> · ${c.n} · ${c.e}</div>`;md.style.display='flex'}
+document.addEventListener('input',event=>{
+ if(event.target.id!=='collectionSearch')return;
+ q=event.target.value.trim().toLocaleLowerCase();
+ document.querySelectorAll('#m .grid [data-card-id]').forEach(element=>{
+  const card=C[Number(element.dataset.cardId)];
+  element.hidden=!!q&&!`${cardTitle(card)} ${card.n} ${card.e}`.toLocaleLowerCase().includes(q);
+ });
+});
 document.addEventListener('pointermove',e=>{const el=e.target.closest('[data-t]');if(!el)return;
  const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height,p=(k,v)=>el.style.setProperty(k,v);
  p('--x',x*100+'%');p('--y',y*100+'%');p('--ry',(x-.5)*26+'deg');p('--rx',(.5-y)*26+'deg')});
