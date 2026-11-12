@@ -112,7 +112,7 @@ function cardImageUrl(card){
  }).join('/');
 }
 window.TCGCardImage=cardImageUrl;
-const face=id=>{const c=C[id];return `<img src="${cardImageUrl(c)}" loading="lazy"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
+const face=(id,loading='lazy')=>{const c=C[id];return `<img src="${cardImageUrl(c)}" loading="${loading}"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
 function toast(t){ts.textContent=t;ts.style.opacity=1;setTimeout(()=>ts.style.opacity=0,2400)}
 function roll(guarantee=null){const out=[],n=Math.min(5,C.length);
  while(out.length<n){
@@ -146,9 +146,11 @@ async function openPk(){
    const nw=ids.filter(id=>!before.has(id)).length,sr=ids.filter(hi).length;
    s.m.open=(s.m.open||0)+1;s.m.new=(s.m.new||0)+nw;s.m.sr=(s.m.sr||0)+sr;
    MS.forEach(([k,t,n])=>{if(!s.cl[k]&&(s.m[k]||0)>=n){s.cl[k]=1;toast('Misión diaria completada')}});save();
-   const rows=await window.TCGOnline.collection();window.TCGOnlineCollection=rows;
-   window.dispatchEvent(new Event('tcg-collection-updated'));
-   setTimeout(()=>reveal(ids),700);
+    setTimeout(()=>reveal(ids),700);
+    window.TCGOnline.collection().then(rows=>{
+     window.TCGOnlineCollection=rows;
+     window.dispatchEvent(new Event('tcg-collection-updated'));
+    }).catch(error=>console.error('No se pudo actualizar la colección online',error));
   }catch(error){if(pack)pack.classList.remove('tear');toast(error.message||'No se pudo abrir el sobre online')}
   return;
  }
@@ -158,7 +160,7 @@ async function openPk(){
  MS.forEach(([k,t,n])=>{if(!s.cl[k]&&(s.m[k]||0)>=n){s.cl[k]=1;toast('Misión diaria completada')}});
  save();pk.classList.add('tear');setTimeout(()=>reveal(ids),700)}
 function reveal(ids){
- m.innerHTML=`<div style="text-align:center"><h2>Tocá cada carta para darla vuelta</h2><div class="row">${ids.map(id=>`<div class="c" data-t onclick="flip(this,${ids.length})"><div class="in"><div class="bk"><img src="assets/dorsocard.png"></div><div class="fr${hi(id)?' holo':''}" style="--c:${COL[C[id].r]}">${face(id)}</div></div></div>`).join('')}</div>
+ m.innerHTML=`<div style="text-align:center"><h2>Tocá cada carta para darla vuelta</h2><div class="row">${ids.map(id=>`<div class="c" data-t onclick="flip(this,${ids.length})"><div class="in"><div class="bk"><img src="assets/dorsocard.png"></div><div class="fr${hi(id)?' holo':''}" style="--c:${COL[C[id].r]}">${face(id,'eager')}</div></div></div>`).join('')}</div>
  <button id="back" class="btn" style="display:none" onclick="go(0)">VOLVER A LOS PAQUETES →</button></div>`}
 function flip(e,n){e.classList.add('f');if(document.querySelectorAll('.c.f').length==n)setTimeout(()=>back.style.display='inline-block',500)}
 const key=c=>c.e+'/'+c.n;
@@ -177,7 +179,7 @@ function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
   save();col();toast('Importadas '+ok+' cartas ('+nw+' nuevas)'+(no?' · '+no+' no encontradas':''))}
   catch(e){toast('Archivo no válido')}inp.value=''};
  r.readAsText(f)}
-let so='r',sd=-1,ex='';
+let so='r',sd=-1,ex='',collectionCards=[],collectionObtainedAt=()=>0;
 function sortCards(cards,obtainedAt){
  return cards.sort((a,b)=>{
   const primary=so==='n'?a.n.localeCompare(b.n):so==='o'?obtainedAt(a)-obtainedAt(b):R.indexOf(a.r)-R.indexOf(b.r);
@@ -186,17 +188,32 @@ function sortCards(cards,obtainedAt){
 }
 function sortControls(){
  const directions=so==='n'?[['A-Z',1],['Z-A',-1]]:so==='r'?[['Menor a Mayor',1],['Mayor a Menor',-1]]:[['Mas antigua',1],['Mas reciente',-1]];
- return `Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtencion']].map(([key,label])=>`<button class="chip${so===key?' on':''}" onclick="so='${key}';sd=${key==='n'?1:-1};col()">${label}</button>`).join('')}
- Direccion: ${directions.map(([label,direction])=>`<button class="chip${sd===direction?' on':''}" onclick="sd=${direction};col()">${label}</button>`).join('')}`;
+ return `Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtencion']].map(([key,label])=>`<button class="chip${so===key?' on':''}" onclick="setSort('${key}')">${label}</button>`).join('')}
+ Direccion: ${directions.map(([label,direction])=>`<button class="chip${sd===direction?' on':''}" onclick="setSort('${so}',${direction})">${label}</button>`).join('')}`;
+}
+function setSort(key,direction){
+ if(direction===undefined){if(so===key)return;so=key;sd=key==='n'?1:-1}else{so=key;sd=direction}
+ const grid=m.querySelector('.grid');
+ if(!grid){col();return}
+ const elements=new Map([...grid.children].map(element=>[Number(element.dataset.cardId),element]));
+ const fragment=document.createDocumentFragment();
+ sortCards(collectionCards.slice(),collectionObtainedAt).forEach(card=>{
+  const element=elements.get(card.id);if(element)fragment.append(element);
+ });
+ grid.append(fragment);
+ const controls=m.querySelector('[data-sort-controls]');
+ if(controls)controls.innerHTML=sortControls();
 }
 function colOnline(rows){
  const owned=new Map(rows.map(item=>[item.card_id,item])),own=C.filter(card=>{const item=owned.get(card.id);return item&&item.quantity>0});
- const list=sortCards(C.filter(card=>!ex||card.e==ex),card=>Date.parse(owned.get(card.id)?.obtained_at||'')||0);
+ collectionCards=C.filter(card=>!ex||card.e==ex);
+ collectionObtainedAt=card=>Date.parse(owned.get(card.id)?.obtained_at||'')||0;
+ const list=sortCards(collectionCards.slice(),collectionObtainedAt);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Colección online</h3><small>Sincronizada con tu cuenta · Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const total=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return total?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/total*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${total}<i></i></div>`:''}).join('')}</div></section>
- <section class="box" style="max-width:none">${sortControls()}
+ <section class="box" style="max-width:none"><div data-sort-controls>${sortControls()}</div>
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${[...new Set(C.map(card=>card.e))].map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
- <div class="grid">${list.map(card=>{const item=owned.get(card.id);return item&&item.quantity>0?`<div class="k" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no"><img src="${cardImageUrl(card)}" loading="lazy"><span>#${card.id+1}</span></div>`}).join('')}</div>`
+ <div class="grid">${list.map((card,index)=>{const item=owned.get(card.id),loading=index<12?'eager':'lazy';return item&&item.quantity>0?`<div class="k" data-card-id="${card.id}" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id,loading)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no" data-card-id="${card.id}"><img src="${cardImageUrl(card)}" loading="${loading}"><span>#${card.id+1}</span></div>`}).join('')}</div>`
 }
 function col(){
  if(window.TCGOnlineUser){
@@ -206,13 +223,15 @@ function col(){
   return;
  }
  const own=C.filter(c=>s.own[c.id]),exs=[...new Set(C.map(c=>c.e))];
- const l=sortCards(C.filter(c=>!ex||c.e==ex),card=>s.own[card.id]?.t||0);
+ collectionCards=C.filter(c=>!ex||c.e==ex);
+ collectionObtainedAt=card=>s.own[card.id]?.t||0;
+ const l=sortCards(collectionCards.slice(),collectionObtainedAt);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Estadísticas de colección</h3><small>Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const t=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return t?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/t*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${t}<i></i></div>`:''}).join('')}</div></section>
  <section class="box" style="max-width:none">Respaldo: <button class="chip" onclick="exportar()">Exportar colección</button> <button class="chip" onclick="imp.click()">Importar colección</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importar(this)"> <small>Se guarda solo en este navegador: exportá de vez en cuando para no perderla.</small></section>
- <section class="box" style="max-width:none">${sortControls()}
+ <section class="box" style="max-width:none"><div data-sort-controls>${sortControls()}</div>
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${exs.map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
- <div class="grid">${l.map(c=>{const o=s.own[c.id];return o?`<div class="k" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id)}<b class="x">x${o.c}</b></div>`:`<div class="k no"><img src="${cardImageUrl(c)}" loading="lazy"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
+ <div class="grid">${l.map((c,index)=>{const o=s.own[c.id],loading=index<12?'eager':'lazy';return o?`<div class="k" data-card-id="${c.id}" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id,loading)}<b class="x">x${o.c}</b></div>`:`<div class="k no" data-card-id="${c.id}"><img src="${cardImageUrl(c)}" loading="${loading}"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
 function zoom(id){const c=C[id];
  md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id)}</div></div><div>${c.n} · ${c.e}</div>`;md.style.display='flex'}
 document.addEventListener('pointermove',e=>{const el=e.target.closest('[data-t]');if(!el)return;

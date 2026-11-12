@@ -60,6 +60,25 @@ function selectedRows(selection) {
   }));
 }
 
+function previewSide(rows, label) {
+  return `<div class="trade-flow-side"><strong>${label}</strong>${rows.length ? rows.map(item => cardRow(item, item.quantity)).join('') : '<div class="trade-empty">Todavía no seleccionaste cartas.</div>'}</div>`;
+}
+
+function updateTradePreview() {
+  const preview = root.querySelector('[data-trade-preview]');
+  if (!preview) return;
+  const offers = selectedRows(state.offer);
+  const requests = selectedRows(state.request);
+  preview.innerHTML = `${previewSide(offers, 'LO QUE OFREZCO')}<div class="trade-arrow" aria-hidden="true">→</div>${previewSide(requests, 'LO QUE RECIBO')}`;
+  for (const [kind, rows] of [['offer', offers], ['request', requests]]) {
+    const count = root.querySelector(`[data-selected-count="${kind}"]`);
+    if (count) count.textContent = `${rows.length} cartas`;
+  }
+  const submit = root.querySelector('#trade-create button[type="submit"]');
+  if (submit) submit.disabled = state.busy || !state.user || !state.selectedPlayer || !offers.length || !requests.length;
+  root.querySelector('.trade-preview [role="alert"]')?.remove();
+}
+
 function renderAccount() {
   if (!TCGOnline) return `<section class="trade-account"><div><b>No se pudo conectar con Supabase</b><div class="trade-note error">${h(TCGOnlineError || 'Revisá la configuración de Supabase en Vercel y volvé a desplegar.')}</div></div></section>`;
   if (!state.user) return `<section class="trade-account"><form id="trade-login">
@@ -109,7 +128,7 @@ function pickerRows(kind, rows) {
     const max = kind === 'offer' ? available(row) : 99;
     return `<div class="trade-row"><img src="${h(cardImage(row))}" alt="${h(card.n)}" loading="lazy">
       <span class="trade-card-copy"><b>${h(card.n)}</b><small>${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r)}</i>${kind === 'offer' ? ` · Disponibles: ${max}` : ''}</small></span>
-      <span class="trade-stepper"><button data-action="decrease" data-kind="${kind}" data-id="${card.id}" aria-label="Quitar una copia" ${qty <= 0 ? 'disabled' : ''}>−</button><b>${qty}</b><button data-action="increase" data-kind="${kind}" data-id="${card.id}" data-max="${max}" aria-label="Agregar una copia" ${qty >= max ? 'disabled' : ''}>+</button></span>
+      <span class="trade-stepper" data-kind="${kind}" data-id="${card.id}"><button data-action="decrease" data-kind="${kind}" data-id="${card.id}" aria-label="Quitar una copia" ${qty <= 0 ? 'disabled' : ''}>−</button><b data-quantity>${qty}</b><button data-action="increase" data-kind="${kind}" data-id="${card.id}" data-max="${max}" aria-label="Agregar una copia" ${qty >= max ? 'disabled' : ''}>+</button></span>
     </div>`;
   }).join('');
 }
@@ -119,23 +138,22 @@ function renderCreate() {
   const wanted = catalog.map(card => ({ ...card, card_id: card.id }));
   const offers = selectedRows(state.offer);
   const requests = selectedRows(state.request);
-  const previewSide = (rows, label) => `<div class="trade-flow-side"><strong>${label}</strong>${rows.length ? rows.map(item => cardRow(item, item.quantity)).join('') : '<div class="trade-empty">Todavía no seleccionaste cartas.</div>'}</div>`;
   return `<form id="trade-create">
     ${renderPlayerSearch()}
     <div class="trade-pickers">
-      <section class="trade-panel trade-picker"><div class="trade-picker-head"><h3>2. LO QUE OFREZCO</h3><span class="trade-qty">${offers.length} cartas</span></div>
+      <section class="trade-panel trade-picker"><div class="trade-picker-head"><h3>2. LO QUE OFREZCO</h3><span class="trade-qty" data-selected-count="offer">${offers.length} cartas</span></div>
         <input class="trade-search" data-filter="offer" value="${h(state.filters.offer)}" placeholder="Filtrar mi colección">
         <div class="trade-picker-list">${pickerRows('offer', owned)}</div>
       </section>
-      <section class="trade-panel trade-picker"><div class="trade-picker-head"><h3>3. LO QUE RECIBO</h3><span class="trade-qty">${requests.length} cartas</span></div>
+      <section class="trade-panel trade-picker"><div class="trade-picker-head"><h3>3. LO QUE RECIBO</h3><span class="trade-qty" data-selected-count="request">${requests.length} cartas</span></div>
         <input class="trade-search" data-filter="request" value="${h(state.filters.request)}" placeholder="Buscar en el catálogo">
         <div class="trade-picker-list">${pickerRows('request', wanted)}</div>
       </section>
     </div>
-    <section class="trade-panel trade-preview"><h3>Vista previa</h3><div class="trade-flow">
+    <section class="trade-panel trade-preview"><h3>Vista previa</h3><div class="trade-flow" data-trade-preview>
       ${previewSide(offers, 'LO QUE OFREZCO')}<div class="trade-arrow" aria-hidden="true">→</div>${previewSide(requests, 'LO QUE RECIBO')}
     </div><div class="trade-actions"><textarea class="trade-message" name="message" maxlength="300" placeholder="Mensaje opcional (300 caracteres)"></textarea>
-      <button class="btn" type="submit" ${state.busy || !state.user ? 'disabled' : ''}>Enviar propuesta</button>
+      <button class="btn" type="submit" ${state.busy || !state.user || !state.selectedPlayer || !offers.length || !requests.length ? 'disabled' : ''}>Enviar propuesta</button>
       ${state.error ? `<span class="trade-note error" role="alert">${h(state.error)}</span>` : ''}</div>
     </section>
   </form>`;
@@ -224,7 +242,12 @@ function updatePicker(kind, cardId, delta, max) {
   if (next) state[kind][cardId] = next;
   else delete state[kind][cardId];
   state.error = '';
-  render();
+  const stepper = root.querySelector(`.trade-stepper[data-kind="${kind}"][data-id="${cardId}"]`);
+  if (!stepper) return;
+  stepper.querySelector('[data-quantity]').textContent = next;
+  stepper.querySelector('[data-action="decrease"]').disabled = next <= 0;
+  stepper.querySelector('[data-action="increase"]').disabled = next >= Number(stepper.querySelector('[data-action="increase"]').dataset.max);
+  updateTradePreview();
 }
 
 root.addEventListener('input', event => {
