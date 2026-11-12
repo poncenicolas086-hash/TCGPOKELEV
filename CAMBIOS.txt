@@ -1,0 +1,13 @@
+CAMBIOS - TCG LEVI
+
+- Se eliminaron los limites diarios: ahora se pueden abrir sobres sin limite.
+- Se muestra el progreso del ciclo de 10 sobres y el total historico abierto.
+- El sobre numero 11 y luego cada 10 sobres (21, 31, 41...) garantiza al menos una carta SR o superior.
+- Los sobres 101, 201, 301... garantizan al menos una carta UR o superior. La garantia UR tiene prioridad sobre la SR.
+- Las otras cartas del sobre mantienen las probabilidades habituales.
+- Las misiones diarias siguen reiniciandose cada dia, pero ya no entregan sobres extra porque las aperturas son ilimitadas.
+
+IMPORTANTE SOBRE PARTIDAS ANTERIORES:
+La version anterior no guardaba el total historico de sobres abiertos. Por eso, al actualizar, el contador total empieza en 0; la coleccion existente se conserva en el mismo navegador.
+
+La carpeta de imagenes de cartas no estaba incluida en el archivo que recibi. Conserva tu carpeta "cartas" original al lado de index.html y ejecuta "node generar-cartas.js" si necesitas regenerar cartas.js.

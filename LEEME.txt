@@ -1,0 +1,24 @@
+TCG LEVI - DONDE PONER LA CARPETA "cartas"
+
+Estructura final del proyecto:
+
+TCG_LEVI/
+  index.html
+  generar-cartas.js
+  cartas.js            <- se genera solo (paso 2)
+  assets/              <- dorsocard.png y sobrecard.png (ya estan)
+  cartas/              <- AQUI va tu carpeta "cartas"
+    <expansion 1>/carta1.png ...
+    <expansion 2>/carta1.png ...
+
+PASOS
+1) Borra la carpeta de prueba cartas/demo_exp y copia tu carpeta "cartas"
+   completa en TCG_LEVI/ (mismo nivel que index.html). No cambies nombres.
+2) En una terminal dentro de TCG_LEVI:  node generar-cartas.js
+   Se crea cartas.js con todas las cartas y su rareza.
+3) Abri index.html en el navegador (doble clic).
+
+Rarezas: C, UC, R, SR, UR. Si queres cambiar alguna, crea rarezas.json:
+  { "expansion/archivo.png": "UR" }
+y volve a correr el paso 2. SR y UR tienen efecto holografico.
+Probabilidades por sobre (5 cartas): C 55% / UC 28% / R 11% / SR 4.5% / UR 1.5%.

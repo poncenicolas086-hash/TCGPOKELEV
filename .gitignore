@@ -1,0 +1,24 @@
+
+# Dependencias
+node_modules/
+dist/
+.cache/
+
+# Archivos temporales y respaldos
+*.log
+*.rar
+*.zip
+*.7z
+*.bak
+
+# Datos privados
+.env
+.env.*
+!.env.example
+
+# Archivos de Windows
+Thumbs.db
+.DS_Store
+
+# Imágenes: se alojarán fuera de GitHub
+/cartas/

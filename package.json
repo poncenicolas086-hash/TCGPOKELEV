@@ -1,0 +1,12 @@
+{
+  "name": "tcg-levi",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed:cards": "node supabase/seed-cards.mjs",
+    "generate:cards": "node generar-cartas.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0"
+  }
+}

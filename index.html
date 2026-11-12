@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCG Levi</title>
+<style>
+:root{--bg:#090A0F;--box:#161B26;--bd:#2A3447;--y:#FFCB05;--tx:#F0F4F8;--t2:#8C9BAE}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(#090A0F,#10141E) fixed;color:var(--tx);font-family:system-ui,sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:9;display:flex;justify-content:center;gap:30px;padding:14px;background:#0b0e15cc;backdrop-filter:blur(10px);border-bottom:1px solid #232D3F}
+header button{background:none;border:0;border-bottom:2px solid transparent;color:var(--t2);font-size:17px;font-weight:700;cursor:pointer;padding:4px 2px}
+header button.on{color:var(--y);border-color:var(--y)}
+main{max-width:1000px;margin:auto;padding:20px}
+.cap{display:inline-block;padding:10px 26px;border:1px solid var(--y);border-radius:30px;background:#1B2230;letter-spacing:3px;font-weight:700;font-size:14px;box-shadow:0 0 18px #FFCB0555}
+.cap b{color:var(--y);text-shadow:0 0 10px #FFCB0580}
+.pack{display:block;width:min(230px,60vw);margin:26px auto 10px;cursor:pointer;filter:drop-shadow(0 18px 18px #000);animation:fl 3s ease-in-out infinite}
+.pack.glow{filter:drop-shadow(0 0 20px #FFCB05) drop-shadow(0 0 48px #FFCB0599)}
+.tear{animation:tear .7s forwards}
+@keyframes fl{50%{transform:translateY(-12px)}}
+@keyframes tear{30%{transform:rotate(-4deg) scale(1.06)}100%{transform:translateY(-40px) scale(1.2);opacity:0}}
+@keyframes bob{50%{transform:translateY(-6px);opacity:.6}}
+@keyframes pls{40%{box-shadow:0 0 50px 12px var(--c)}}
+.arc{color:var(--y);font:700 15px monospace;letter-spacing:2px;animation:bob 1.2s infinite;margin-bottom:26px}
+.box{background:#161B26cc;border:1px solid var(--bd);border-radius:14px;padding:16px 18px;margin:16px auto;max-width:620px;backdrop-filter:blur(8px)}
+.box h3{margin:0 0 10px;color:var(--y)}.box small{color:var(--t2)}
+.ms{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #232D3F}.ok{color:#4ADE80}
+.row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;perspective:900px}
+.c{position:relative;width:min(160px,28vw);min-width:105px;aspect-ratio:5/7;cursor:pointer;transform-style:preserve-3d;transform:rotateX(var(--rx,0)) rotateY(var(--ry,0));transition:transform .12s}
+.c.big{width:min(280px,70vw);cursor:default}
+.in{position:relative;width:100%;height:100%;transition:transform .7s;transform-style:preserve-3d}
+.c.f .in{transform:rotateY(180deg)}
+.bk,.fr{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;overflow:hidden}
+.bk img{width:100%;height:100%;object-fit:cover}
+.fr{transform:rotateY(180deg);border:3px solid var(--c);box-shadow:0 0 14px var(--c)}
+.c.f .fr.holo{animation:pls 1.2s}
+.fr img,.k img{width:100%;height:100%;object-fit:cover;display:block}
+.holo::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:color-dodge;opacity:.55;background:radial-gradient(circle at var(--x,50%) var(--y,50%),#fffa,#fff0 45%),linear-gradient(115deg,#f0f5,#0ff5,#ff05,#f0f5)}
+.rr{position:absolute;top:4px;left:6px;font:700 13px sans-serif;font-style:normal;background:#000b;padding:1px 6px;border-radius:6px}
+.btn,.chip,select{background:#1B2230;color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;cursor:pointer;margin:2px}
+.btn{background:linear-gradient(#f3dfa6,#c9a24a);color:#222;font-weight:700;padding:14px 30px;margin-top:26px}
+.chip.on{background:#d98f00;color:#000;border-color:#d98f00}
+.st{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.st div{flex:1;min-width:90px;border:1px solid;border-radius:8px;padding:6px 8px;font-size:13px;background:#0e121a}
+.st i{display:block;height:4px;margin-top:5px;border-radius:3px;background:linear-gradient(90deg,var(--c) var(--p),#222 var(--p))}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:12px}
+.k{position:relative;aspect-ratio:5/7;border:3px solid var(--c);border-radius:8px;overflow:hidden;cursor:pointer;box-shadow:0 0 10px var(--c)}
+.k.no{border-color:var(--bd);box-shadow:none;cursor:default}.no img{filter:grayscale(1) brightness(.3)}
+.no span{position:absolute;inset:auto 0 6px;text-align:center;color:var(--t2);font-size:12px}
+.x{position:absolute;right:5px;bottom:5px;background:#000b;padding:1px 6px;border-radius:6px;font-size:12px}
+#md{position:fixed;inset:0;background:#000d;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;perspective:900px}
+#ts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1B2230;border:1px solid var(--y);padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;z-index:30;pointer-events:none}
+</style></head><body>
+<header><button id="t0" class="on" onclick="go(0)">Gacha</button><button id="t1" onclick="go(1)">Colección</button></header>
+<main id="m"></main><div id="md" onclick="this.style.display='none'"></div><div id="ts"></div>
+<script src="cartas.js"></script>
+<script>
+const C=window.CARTAS||[],R=['C','UC','R','SR','UR'],K='tcg_levi_v1',
+COL={C:'#8C9BAE',UC:'#4ADE80',R:'#3399FF',SR:'#A855F7',UR:'#FFCB05'},W={C:55,UC:28,R:11,SR:4.5,UR:1.5},
+MS=[['open','Abrir 5 paquetes',5],['sr','Conseguir 1 carta SR o superior',1],['new','Conseguir 3 cartas nuevas',3]],
+today=()=>new Date().toLocaleDateString('sv'),hi=id=>R.indexOf(C[id].r)>=3;
+let s;try{s=JSON.parse(localStorage.getItem(K))}catch(e){}
+s=s||{own:{},total:0,day:today(),m:{},cl:{},next:null};
+// Compatibilidad con partidas anteriores: el contador total comienza en 0.
+if(!Number.isFinite(s.total))s.total=0;
+if(s.day!==today()){s.day=today();s.m={};s.cl={}}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}};
+const face=id=>{const c=C[id];return `<img src="${c.f}" loading="lazy"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
+function toast(t){ts.textContent=t;ts.style.opacity=1;setTimeout(()=>ts.style.opacity=0,2400)}
+function roll(guarantee=null){const out=[],n=Math.min(5,C.length);
+ while(out.length<n){
+  let av=R.filter(r=>C.some(c=>c.r==r&&!out.includes(c.id)));
+  if(guarantee&&!out.length)av=av.filter(r=>R.indexOf(r)>=R.indexOf(guarantee));
+  let t=av.reduce((a,r)=>a+W[r],0)*Math.random(),r=av[av.length-1];
+  for(const x of av){if((t-=W[x])<0){r=x;break}}
+  const p=C.filter(c=>c.r==r&&!out.includes(c.id));out.push(p[Math.random()*p.length|0].id)
+ }
+ return out}
+function nextGuarantee(){const next=s.total+1;if(next%100===1&&C.some(c=>c.r==='UR'))return 'UR';if(next%10===1&&C.some(c=>R.indexOf(c.r)>=R.indexOf('SR')))return 'SR';return null}
+function go(i){t0.className=i?'':'on';t1.className=i?'on':'';i?col():gacha()}
+function gacha(){
+ if(!C.length){m.innerHTML='<p>Falta <b>cartas.js</b>. Ejecutá <code>node generar-cartas.js</code> (ver LEEME.txt).</p>';return}
+ if(!s.next||new Set(s.next).size<Math.min(5,C.length)){s.next=roll(nextGuarantee());save()}
+ const guarantee=nextGuarantee(),progress=s.total===0?0:((s.total-1)%10)+1;
+ m.innerHTML=`<div style="text-align:center"><div class="cap">SOBRES: <b>${progress} / 10</b> · TOTAL: <b>${s.total}</b></div>
+ ${guarantee?`<div style="color:var(--y);font-weight:700;margin-top:10px">PRÓXIMO SOBRE: ${guarantee}+ GARANTIZADA</div>`:''}
+ <img id="pk" class="pack${s.next.some(hi)?' glow':''}" src="assets/sobrecard.png" onclick="openPk()">
+ <div class="arc">▲ TOCA PARA ABRIR ▲</div></div>
+ <section class="box"><h3>Misiones diarias</h3>${MS.map(([k,t,n])=>`<div class="ms"><span>${t}</span>${s.cl[k]?'<b class="ok">Hecho</b>':`<span>${Math.min(s.m[k]||0,n)}/${n}</span>`}</div>`).join('')}<small>Las misiones se reinician diariamente.</small></section>`}
+function openPk(){
+ const ids=s.next,opened=s.total+1,guarantee=nextGuarantee();s.total=opened;s.next=null;let nw=0,sr=0;
+ ids.forEach((id,i)=>{const o=s.own[id];if(o)o.c++;else{s.own[id]={c:1,t:Date.now()*10+i};nw++}if(hi(id))sr++});
+ s.m.open=(s.m.open||0)+1;s.m.new=(s.m.new||0)+nw;s.m.sr=(s.m.sr||0)+sr;
+ MS.forEach(([k,t,n])=>{if(!s.cl[k]&&(s.m[k]||0)>=n){s.cl[k]=1;toast('Misión diaria completada')}});
+ save();pk.classList.add('tear');setTimeout(()=>reveal(ids),700)}
+function reveal(ids){
+ m.innerHTML=`<div style="text-align:center"><h2>Tocá cada carta para darla vuelta</h2><div class="row">${ids.map(id=>`<div class="c" data-t onclick="flip(this,${ids.length})"><div class="in"><div class="bk"><img src="assets/dorsocard.png"></div><div class="fr${hi(id)?' holo':''}" style="--c:${COL[C[id].r]}">${face(id)}</div></div></div>`).join('')}</div>
+ <button id="back" class="btn" style="display:none" onclick="go(0)">VOLVER A LOS PAQUETES →</button></div>`}
+function flip(e,n){e.classList.add('f');if(document.querySelectorAll('.c.f').length==n)setTimeout(()=>back.style.display='inline-block',500)}
+const key=c=>c.e+'/'+c.n;
+function exportar(){
+ const own={};C.forEach(c=>{const o=s.own[c.id];if(o)own[key(c)]={c:o.c,t:o.t}});
+ const b=new Blob([JSON.stringify({app:'tcg_levi',v:1,fecha:new Date().toISOString(),own},null,1)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='coleccion-tcg-levi-'+today()+'.json';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+ toast('Colección exportada ('+Object.keys(own).length+' cartas)')}
+function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const d=JSON.parse(r.result);if(d.app!=='tcg_levi'||!d.own)throw 0;
+  const idx={};C.forEach(c=>idx[key(c)]=c.id);let ok=0,nw=0,no=0;
+  for(const k in d.own){const id=idx[k];if(id===undefined){no++;continue}
+   const i=d.own[k],o=s.own[id];
+   if(!o){s.own[id]={c:(i.c|0)||1,t:i.t||Date.now()};nw++}else{o.c=Math.max(o.c,i.c|0);o.t=Math.min(o.t,i.t||o.t)}ok++}
+  save();col();toast('Importadas '+ok+' cartas ('+nw+' nuevas)'+(no?' · '+no+' no encontradas':''))}
+  catch(e){toast('Archivo no válido')}inp.value=''};
+ r.readAsText(f)}
+let so='r',ex='';
+function col(){
+ const own=C.filter(c=>s.own[c.id]),exs=[...new Set(C.map(c=>c.e))],rk=c=>R.indexOf(c.r),ot=c=>s.own[c.id]?s.own[c.id].t:0;
+ const l=C.filter(c=>!ex||c.e==ex).sort(so=='n'?(a,b)=>a.n.localeCompare(b.n):so=='o'?(a,b)=>ot(b)-ot(a):(a,b)=>rk(b)-rk(a)||a.n.localeCompare(b.n));
+ m.innerHTML=`<section class="box" style="max-width:none"><h3>Estadísticas de colección</h3><small>Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
+ <div class="st">${R.slice().reverse().map(r=>{const t=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return t?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/t*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${t}<i></i></div>`:''}).join('')}</div></section>
+ <section class="box" style="max-width:none">Respaldo: <button class="chip" onclick="exportar()">Exportar colección</button> <button class="chip" onclick="imp.click()">Importar colección</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importar(this)"> <small>Se guarda solo en este navegador: exportá de vez en cuando para no perderla.</small></section>
+ <section class="box" style="max-width:none">Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtención']].map(([k,t])=>`<button class="chip${so==k?' on':''}" onclick="so='${k}';col()">${t}</button>`).join('')}
+ <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${exs.map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
+ <div class="grid">${l.map(c=>{const o=s.own[c.id];return o?`<div class="k" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id)}<b class="x">x${o.c}</b></div>`:`<div class="k no"><img src="${c.f}" loading="lazy"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
+function zoom(id){const c=C[id];
+ md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id)}</div></div><div>${c.n} · ${c.e}</div>`;md.style.display='flex'}
+document.addEventListener('pointermove',e=>{const el=e.target.closest('[data-t]');if(!el)return;
+ const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height,p=(k,v)=>el.style.setProperty(k,v);
+ p('--x',x*100+'%');p('--y',y*100+'%');p('--ry',(x-.5)*26+'deg');p('--rx',(.5-y)*26+'deg')});
+document.addEventListener('pointerout',e=>{const el=e.target.closest('[data-t]');
+ if(el&&!el.contains(e.relatedTarget)){el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg')}});
+gacha();
+</script></body></html>
