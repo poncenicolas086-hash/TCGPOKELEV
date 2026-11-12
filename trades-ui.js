@@ -193,26 +193,29 @@ function renderTradeList(mode) {
 function render() {
   root.innerHTML = `<div class="trade-top"><div><h1>Intercambios</h1><p>Propuestas directas, con transferencia segura entre colecciones.</p></div></div>
     ${renderAccount()}${renderTabs()}
+    ${state.error ? `<section class="trade-panel"><div class="trade-note error" role="status">${h(state.error)}</div></section>` : ''}
     ${!TCGOnline ? `<section class="trade-panel"><div class="trade-note error">${h(TCGOnlineError || 'Revisá las variables de entorno de Supabase en Vercel y volvé a desplegar.')}</div></section>` : !state.user ? '<section class="trade-panel"><div class="trade-empty">Iniciá sesión con una cuenta invitada para crear y gestionar intercambios.</div></section>' : state.tab === 'create' ? renderCreate() : `<section class="trade-panel">${renderTradeList(state.tab)}</section>`}`;
 }
 
 async function refresh() {
   if (!state.user) { render(); return; }
-  try {
-    const [profile, collection, trades, notifications] = await Promise.all([
-      TCGOnline.profile(), TCGOnline.collection(), TCGOnline.trades(), TCGOnline.notifications()
-    ]);
-    state.profile = profile;
-    state.collection = collection || [];
-    state.trades = trades || [];
-    state.notifications = notifications || [];
-    state.error = '';
-    window.dispatchEvent(new CustomEvent('tcg-online-state', {
-      detail: { user: state.user, profile: state.profile, collection: state.collection }
-    }));
-  } catch (error) {
-    state.error = error.message || 'No se pudieron cargar los datos online.';
-  }
+  const results = await Promise.allSettled([
+    TCGOnline.profile(), TCGOnline.collection(), TCGOnline.trades(), TCGOnline.notifications()
+  ]);
+  const failures = [];
+  const readResult = (index, label, assign) => {
+    const result = results[index];
+    if (result.status === 'fulfilled') assign(result.value);
+    else failures.push(`${label}: ${result.reason?.message || 'error desconocido'}`);
+  };
+  readResult(0, 'Perfil', value => { state.profile = value; });
+  readResult(1, 'Colección', value => { state.collection = value || []; });
+  readResult(2, 'Intercambios', value => { state.trades = value || []; });
+  readResult(3, 'Notificaciones', value => { state.notifications = value || []; });
+  state.error = failures.join(' · ');
+  window.dispatchEvent(new CustomEvent('tcg-online-state', {
+    detail: { user: state.user, profile: state.profile, collection: state.collection }
+  }));
   render();
 }
 
