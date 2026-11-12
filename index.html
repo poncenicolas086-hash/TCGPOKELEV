@@ -8,6 +8,7 @@ body{margin:0;background:linear-gradient(#090A0F,#10141E) fixed;color:var(--tx);
 header{position:sticky;top:0;z-index:9;display:flex;justify-content:center;gap:30px;padding:14px;background:#0b0e15cc;backdrop-filter:blur(10px);border-bottom:1px solid #232D3F}
 header button{background:none;border:0;border-bottom:2px solid transparent;color:var(--t2);font-size:17px;font-weight:700;cursor:pointer;padding:4px 2px}
 header button.on{color:var(--y);border-color:var(--y)}
+header button:focus-visible,.trade-tabs button:focus-visible,.trade-app button:focus-visible{outline:2px solid var(--y);outline-offset:3px}
 main{max-width:1000px;margin:auto;padding:20px}
 .cap{display:inline-block;padding:10px 26px;border:1px solid var(--y);border-radius:30px;background:#1B2230;letter-spacing:3px;font-weight:700;font-size:14px;box-shadow:0 0 18px #FFCB0555}
 .cap b{color:var(--y);text-shadow:0 0 10px #FFCB0580}
@@ -47,10 +48,43 @@ main{max-width:1000px;margin:auto;padding:20px}
 .x{position:absolute;right:5px;bottom:5px;background:#000b;padding:1px 6px;border-radius:6px;font-size:12px}
 #md{position:fixed;inset:0;background:#000d;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;perspective:900px}
 #ts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1B2230;border:1px solid var(--y);padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;z-index:30;pointer-events:none}
+.trade-app{max-width:1120px;margin:auto;padding:20px;color:var(--tx)}
+.trade-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:6px 0 18px}
+.trade-top h1{margin:0 0 5px;color:var(--y);font-size:clamp(22px,4vw,32px)}.trade-top p{margin:0;color:var(--t2)}
+.trade-account,.trade-panel{background:#121822;border:1px solid var(--bd);border-radius:12px;padding:14px}
+.trade-account{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
+.trade-account form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%}
+.trade-app input,.trade-app textarea{min-width:0;background:#0c1118;border:1px solid var(--bd);border-radius:7px;color:var(--tx);padding:10px 12px;font:inherit}
+.trade-app input:focus,.trade-app textarea:focus{outline:2px solid #ffcb0588;border-color:var(--y)}
+.trade-app input[type=email],.trade-app input[type=password]{flex:1 1 190px}
+.trade-app .btn{margin:0;padding:10px 16px}.trade-app .btn.secondary{background:#1b2230;border:1px solid var(--bd);color:var(--tx)}
+.trade-tabs{display:flex;gap:6px;overflow:auto;border-bottom:1px solid var(--bd);margin-bottom:16px}
+.trade-tabs button{flex:0 0 auto;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--t2);font:inherit;font-size:14px;font-weight:700;padding:12px 14px;cursor:pointer}
+.trade-tabs button.active{border-color:var(--y);color:var(--y)}
+.trade-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.trade-panel{min-width:0}.trade-panel h2,.trade-panel h3{margin:0 0 12px}.trade-panel h2{font-size:18px}.trade-panel h3{font-size:15px;color:var(--y)}
+.trade-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #252e3d}
+.trade-row:last-child{border-bottom:0}.trade-row img{width:44px;aspect-ratio:5/7;object-fit:cover;border-radius:4px;border:1px solid #526075}
+.trade-row .trade-card-copy{flex:1;min-width:0}.trade-card-copy b,.trade-card-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.trade-card-copy small{color:var(--t2);margin-top:3px}
+.trade-qty{color:var(--y);font-weight:700;white-space:nowrap}.trade-search{width:100%;margin:0 0 10px}
+.trade-results{max-height:300px;overflow:auto}.trade-player{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #252e3d}
+.trade-pickers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+.trade-picker{min-width:0}.trade-picker-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.trade-picker-head h3{margin:0 0 8px}
+.trade-picker-list{max-height:355px;overflow:auto;border-top:1px solid #252e3d}
+.trade-stepper{display:flex;align-items:center;gap:7px}.trade-stepper button{width:30px;height:30px;padding:0;border:1px solid var(--bd);border-radius:6px;background:#1b2230;color:var(--tx);font-size:18px;cursor:pointer}
+.trade-preview{margin-top:14px}.trade-preview h3{margin-bottom:8px}.trade-flow{display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);align-items:start;gap:12px}
+.trade-flow-side{min-width:0}.trade-flow-side>strong{display:block;color:var(--y);font-size:12px;letter-spacing:1px;margin-bottom:4px}.trade-arrow{text-align:center;color:var(--y);font-size:23px;padding-top:18px}
+.trade-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.trade-message{width:100%;min-height:74px;resize:vertical}
+.trade-list{display:grid;gap:12px}.trade-item{background:#121822;border:1px solid var(--bd);border-radius:10px;padding:14px}.trade-item-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:10px}.trade-status{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--y)}
+.trade-item .trade-flow{border-top:1px solid #252e3d;padding-top:10px}.trade-empty,.trade-note{color:var(--t2);padding:12px 0}.trade-note.error{color:#ff8585}.trade-note.success{color:#4ade80}.trade-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#d98f00;color:#111;font-size:11px;margin-left:4px}
+.trade-notifications{margin-left:auto;color:var(--t2);font-size:13px}.trade-notifications summary{cursor:pointer;color:var(--y)}.trade-notifications .trade-note{padding:5px 0}
+@media(max-width:720px){header{gap:16px}header button{font-size:15px}.trade-app{padding:14px}.trade-top{display:block}.trade-grid,.trade-pickers{grid-template-columns:1fr}.trade-flow{grid-template-columns:1fr}.trade-arrow{padding:0;transform:rotate(90deg)}.trade-account{align-items:flex-start}.trade-tabs button{padding:11px 9px}}
 </style></head><body>
-<header><button id="t0" class="on" onclick="go(0)">Gacha</button><button id="t1" onclick="go(1)">Colección</button></header>
-<main id="m"></main><div id="md" onclick="this.style.display='none'"></div><div id="ts"></div>
+<header><button id="t0" class="on" onclick="go(0)">Gacha</button><button id="t1" onclick="go(1)">Colección</button><button id="t2" onclick="go(2)">Intercambios</button></header>
+<main id="m"></main><main id="tradeApp" class="trade-app" hidden></main><div id="md" onclick="this.style.display='none'"></div><div id="ts"></div>
 <script src="cartas.js"></script>
+<script type="module" src="/trades-ui.js"></script>
 <script>
 const C=window.CARTAS||[],R=['C','UC','R','SR','UR'],K='tcg_levi_v1',
 COL={C:'#8C9BAE',UC:'#4ADE80',R:'#3399FF',SR:'#A855F7',UR:'#FFCB05'},W={C:55,UC:28,R:11,SR:4.5,UR:1.5},
@@ -73,18 +107,35 @@ function roll(guarantee=null){const out=[],n=Math.min(5,C.length);
   const p=C.filter(c=>c.r==r&&!out.includes(c.id));out.push(p[Math.random()*p.length|0].id)
  }
  return out}
-function nextGuarantee(){const next=s.total+1;if(next%100===1&&C.some(c=>c.r==='UR'))return 'UR';if(next%10===1&&C.some(c=>R.indexOf(c.r)>=R.indexOf('SR')))return 'SR';return null}
-function go(i){t0.className=i?'':'on';t1.className=i?'on':'';i?col():gacha()}
+function nextGuarantee(){const total=window.TCGOnlineUser?Number(window.TCGOnlineProfile?.total_packs||0):s.total,next=total+1;if(next%100===1&&C.some(c=>c.r==='UR'))return 'UR';if(next%10===1&&C.some(c=>R.indexOf(c.r)>=R.indexOf('SR')))return 'SR';return null}
+function go(i){window.TCGCurrentView=i;[t0,t1,t2].forEach((tab,n)=>tab.className=i===n?'on':'');m.hidden=i===2;tradeApp.hidden=i!==2;if(i!==2)i?col():gacha()}
 function gacha(){
  if(!C.length){m.innerHTML='<p>Falta <b>cartas.js</b>. Ejecutá <code>node generar-cartas.js</code> (ver LEEME.txt).</p>';return}
+ const total=window.TCGOnlineUser?Number(window.TCGOnlineProfile?.total_packs||0):s.total;
  if(!s.next||new Set(s.next).size<Math.min(5,C.length)){s.next=roll(nextGuarantee());save()}
- const guarantee=nextGuarantee(),progress=s.total===0?0:((s.total-1)%10)+1;
- m.innerHTML=`<div style="text-align:center"><div class="cap">SOBRES: <b>${progress} / 10</b> · TOTAL: <b>${s.total}</b></div>
+ const guarantee=nextGuarantee(),progress=total===0?0:((total-1)%10)+1;
+ m.innerHTML=`<div style="text-align:center"><div class="cap">SOBRES: <b>${progress} / 10</b> · TOTAL: <b>${total}</b></div>
  ${guarantee?`<div style="color:var(--y);font-weight:700;margin-top:10px">PRÓXIMO SOBRE: ${guarantee}+ GARANTIZADA</div>`:''}
  <img id="pk" class="pack${s.next.some(hi)?' glow':''}" src="assets/sobrecard.png" onclick="openPk()">
  <div class="arc">▲ TOCA PARA ABRIR ▲</div></div>
  <section class="box"><h3>Misiones diarias</h3>${MS.map(([k,t,n])=>`<div class="ms"><span>${t}</span>${s.cl[k]?'<b class="ok">Hecho</b>':`<span>${Math.min(s.m[k]||0,n)}/${n}</span>`}</div>`).join('')}<small>Las misiones se reinician diariamente.</small></section>`}
-function openPk(){
+async function openPk(){
+ if(window.TCGOnline&&window.TCGOnlineUser){
+  const pack=document.getElementById('pk');if(pack)pack.classList.add('tear');
+  try{
+   const before=new Set((window.TCGOnlineCollection||[]).map(card=>card.card_id));
+    const result=await window.TCGOnline.openPack(),ids=result.card_ids||[];
+    window.TCGOnlineProfile={...window.TCGOnlineProfile,total_packs:result.total_packs};
+    s.next=null;
+   const nw=ids.filter(id=>!before.has(id)).length,sr=ids.filter(hi).length;
+   s.m.open=(s.m.open||0)+1;s.m.new=(s.m.new||0)+nw;s.m.sr=(s.m.sr||0)+sr;
+   MS.forEach(([k,t,n])=>{if(!s.cl[k]&&(s.m[k]||0)>=n){s.cl[k]=1;toast('Misión diaria completada')}});save();
+   const rows=await window.TCGOnline.collection();window.TCGOnlineCollection=rows;
+   window.dispatchEvent(new Event('tcg-collection-updated'));
+   setTimeout(()=>reveal(ids),700);
+  }catch(error){if(pack)pack.classList.remove('tear');toast(error.message||'No se pudo abrir el sobre online')}
+  return;
+ }
  const ids=s.next,opened=s.total+1,guarantee=nextGuarantee();s.total=opened;s.next=null;let nw=0,sr=0;
  ids.forEach((id,i)=>{const o=s.own[id];if(o)o.c++;else{s.own[id]={c:1,t:Date.now()*10+i};nw++}if(hi(id))sr++});
  s.m.open=(s.m.open||0)+1;s.m.new=(s.m.new||0)+nw;s.m.sr=(s.m.sr||0)+sr;
@@ -111,7 +162,22 @@ function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
   catch(e){toast('Archivo no válido')}inp.value=''};
  r.readAsText(f)}
 let so='r',ex='';
+function colOnline(rows){
+ const owned=new Map(rows.map(item=>[item.card_id,item])),own=C.filter(card=>{const item=owned.get(card.id);return item&&item.quantity>0}),rk=card=>R.indexOf(card.r);
+ const list=C.filter(card=>!ex||card.e==ex).sort(so=='n'?(a,b)=>a.n.localeCompare(b.n):so=='o'?(a,b)=>(owned.get(b.id)?.obtained_at||'').localeCompare(owned.get(a.id)?.obtained_at||''):(a,b)=>rk(b)-rk(a)||a.n.localeCompare(b.n));
+ m.innerHTML=`<section class="box" style="max-width:none"><h3>Colección online</h3><small>Sincronizada con tu cuenta · Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
+ <div class="st">${R.slice().reverse().map(r=>{const total=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return total?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/total*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${total}<i></i></div>`:''}).join('')}</div></section>
+ <section class="box" style="max-width:none">Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtención']].map(([k,t])=>`<button class="chip${so==k?' on':''}" onclick="so='${k}';col()">${t}</button>`).join('')}
+ <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${[...new Set(C.map(card=>card.e))].map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
+ <div class="grid">${list.map(card=>{const item=owned.get(card.id);return item&&item.quantity>0?`<div class="k" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no"><img src="${card.f}" loading="lazy"><span>#${card.id+1}</span></div>`}).join('')}</div>`
+}
 function col(){
+ if(window.TCGOnlineUser){
+  if(window.TCGOnlineCollection){colOnline(window.TCGOnlineCollection);return}
+  m.innerHTML='<section class="box"><h3>Colección online</h3><small>Cargando colección…</small></section>';
+  window.TCGOnline.collection().then(rows=>{window.TCGOnlineCollection=rows;if(window.TCGCurrentView===1)colOnline(rows)}).catch(error=>toast(error.message||'No se pudo cargar la colección'));
+  return;
+ }
  const own=C.filter(c=>s.own[c.id]),exs=[...new Set(C.map(c=>c.e))],rk=c=>R.indexOf(c.r),ot=c=>s.own[c.id]?s.own[c.id].t:0;
  const l=C.filter(c=>!ex||c.e==ex).sort(so=='n'?(a,b)=>a.n.localeCompare(b.n):so=='o'?(a,b)=>ot(b)-ot(a):(a,b)=>rk(b)-rk(a)||a.n.localeCompare(b.n));
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Estadísticas de colección</h3><small>Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
@@ -128,4 +194,9 @@ document.addEventListener('pointermove',e=>{const el=e.target.closest('[data-t]'
 document.addEventListener('pointerout',e=>{const el=e.target.closest('[data-t]');
  if(el&&!el.contains(e.relatedTarget)){el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg')}});
 gacha();
+window.addEventListener('tcg-online-state',event=>{
+ window.TCGOnlineUser=event.detail?.user||null;window.TCGOnlineProfile=event.detail?.profile||null;window.TCGOnlineCollection=event.detail?.collection??null;s.next=null;
+ if(window.TCGCurrentView===0)gacha();else if(window.TCGCurrentView===1)col();
+});
+window.addEventListener('tcg-collection-updated',()=>{if(window.TCGCurrentView===1)col()});
 </script></body></html>

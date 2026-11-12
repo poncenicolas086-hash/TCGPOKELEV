@@ -3,10 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
     "seed:cards": "node supabase/seed-cards.mjs",
     "generate:cards": "node generar-cartas.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.8"
   }
 }
