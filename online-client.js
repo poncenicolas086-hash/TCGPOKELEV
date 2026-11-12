@@ -6,13 +6,38 @@ const configured = window.TCG_SUPABASE_CONFIG || {};
 const url = configured.url || env.VITE_SUPABASE_URL;
 const anonKey = configured.anonKey || env.VITE_SUPABASE_ANON_KEY;
 
-const supabase = url && anonKey && !url.includes('TU-PROYECTO')
-  ? createClient(url, anonKey)
-  : null;
+let supabase = null;
+let configError = '';
+let parsedSupabaseUrl = null;
+if (url && !url.includes('TU-PROYECTO')) {
+  try {
+    parsedSupabaseUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedSupabaseUrl.protocol) || !parsedSupabaseUrl.hostname) {
+      parsedSupabaseUrl = null;
+    }
+  } catch {
+    parsedSupabaseUrl = null;
+  }
+}
+if (parsedSupabaseUrl) {
+  window.TCGStorageBase = `${parsedSupabaseUrl.origin}/storage/v1/object/public/cartas/`;
+}
+if (!url || !anonKey || url.includes('TU-PROYECTO')) {
+  configError = 'Faltan VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY en la configuración de Vercel.';
+} else if (!parsedSupabaseUrl) {
+  configError = 'VITE_SUPABASE_URL no es válida. Debe tener el formato https://<proyecto>.supabase.co.';
+} else {
+  try {
+    supabase = createClient(parsedSupabaseUrl.origin, anonKey);
+  } catch {
+    configError = 'No se pudo inicializar Supabase. Revisá la URL y la clave pública configuradas en Vercel.';
+  }
+}
 export let TCGOnline = null;
+export const TCGOnlineError = configError;
 
 if (!supabase) {
-  console.warn('TCG LEVI: configurar VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY para activar el modo online.');
+  console.warn(`TCG LEVI: ${configError}`);
 } else {
   const db = supabase;
   const api = {

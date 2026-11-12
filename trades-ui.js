@@ -1,4 +1,4 @@
-import { TCGOnline } from './online-client.js';
+import { TCGOnline, TCGOnlineError } from './online-client.js';
 
 const root = document.getElementById('tradeApp');
 const catalog = window.CARTAS || [];
@@ -32,7 +32,10 @@ const cardInfo = row => catalogById.get(row.card_id ?? row.id) || {
   r: row.rarity || row.cards?.rarity || '',
   f: row.image_path || row.cards?.image_path || ''
 };
-const cardImage = row => cardInfo(row).f || row.cards?.image_path || '';
+const cardImage = row => {
+  const card = cardInfo(row);
+  return window.TCGCardImage ? window.TCGCardImage(card) : card.f || row.cards?.image_path || '';
+};
 const available = row => Math.max(0, Number(row.quantity) - Number(row.reserved || 0));
 const statusNames = { pending: 'Pendiente', accepted: 'Completado', rejected: 'Rechazado', cancelled: 'Cancelado' };
 const toast = message => {
@@ -58,7 +61,7 @@ function selectedRows(selection) {
 }
 
 function renderAccount() {
-  if (!TCGOnline) return `<section class="trade-account"><div><b>Modo online no configurado</b><div class="trade-note">Configure VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en Vercel y vuelva a desplegar.</div></div></section>`;
+  if (!TCGOnline) return `<section class="trade-account"><div><b>No se pudo conectar con Supabase</b><div class="trade-note error">${h(TCGOnlineError || 'Revisá la configuración de Supabase en Vercel y volvé a desplegar.')}</div></div></section>`;
   if (!state.user) return `<section class="trade-account"><form id="trade-login">
     <input name="email" type="email" autocomplete="username" placeholder="Correo de invitación" required>
     <input name="password" type="password" autocomplete="current-password" placeholder="Contraseña" required>
@@ -172,7 +175,7 @@ function renderTradeList(mode) {
 function render() {
   root.innerHTML = `<div class="trade-top"><div><h1>Intercambios</h1><p>Propuestas directas, con transferencia segura entre colecciones.</p></div></div>
     ${renderAccount()}${renderTabs()}
-    ${!TCGOnline ? '<section class="trade-panel"><div class="trade-note error">No se pudo inicializar Supabase. Verificá las variables de entorno de Vercel y volvé a desplegar.</div></section>' : !state.user ? '<section class="trade-panel"><div class="trade-empty">Iniciá sesión con una cuenta invitada para crear y gestionar intercambios.</div></section>' : state.tab === 'create' ? renderCreate() : `<section class="trade-panel">${renderTradeList(state.tab)}</section>`}`;
+    ${!TCGOnline ? `<section class="trade-panel"><div class="trade-note error">${h(TCGOnlineError || 'Revisá las variables de entorno de Supabase en Vercel y volvé a desplegar.')}</div></section>` : !state.user ? '<section class="trade-panel"><div class="trade-empty">Iniciá sesión con una cuenta invitada para crear y gestionar intercambios.</div></section>' : state.tab === 'create' ? renderCreate() : `<section class="trade-panel">${renderTradeList(state.tab)}</section>`}`;
 }
 
 async function refresh() {

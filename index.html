@@ -96,7 +96,20 @@ s=s||{own:{},total:0,day:today(),m:{},cl:{},next:null};
 if(!Number.isFinite(s.total))s.total=0;
 if(s.day!==today()){s.day=today();s.m={};s.cl={}}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}};
-const face=id=>{const c=C[id];return `<img src="${c.f}" loading="lazy"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
+const STORAGE='https://irqccifpkkpgpbaepgbo.supabase.co/storage/v1/object/public/cartas/';
+function cardImageUrl(card){
+ const source=String(card?.f||'');
+ const storageBase=window.TCGStorageBase||STORAGE,marker='/storage/v1/object/public/cartas/';
+ const markerIndex=source.indexOf(marker);
+ if(markerIndex>=0)return storageBase+source.slice(markerIndex+marker.length);
+ if(/^https?:\/\//i.test(source))return source;
+ const path=source.replace(/^(?:\.\/|\/)?cartas\//i,'').replace(/\.(?:png|jpe?g)$/i,'.webp');
+ return storageBase+path.split('/').map(segment=>{
+  try{return encodeURIComponent(decodeURIComponent(segment))}catch{return encodeURIComponent(segment)}
+ }).join('/');
+}
+window.TCGCardImage=cardImageUrl;
+const face=id=>{const c=C[id];return `<img src="${cardImageUrl(c)}" loading="lazy"><i class="rr" style="color:${COL[c.r]}">${c.r}</i>`};
 function toast(t){ts.textContent=t;ts.style.opacity=1;setTimeout(()=>ts.style.opacity=0,2400)}
 function roll(guarantee=null){const out=[],n=Math.min(5,C.length);
  while(out.length<n){
@@ -169,7 +182,7 @@ function colOnline(rows){
  <div class="st">${R.slice().reverse().map(r=>{const total=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return total?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/total*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${total}<i></i></div>`:''}).join('')}</div></section>
  <section class="box" style="max-width:none">Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtención']].map(([k,t])=>`<button class="chip${so==k?' on':''}" onclick="so='${k}';col()">${t}</button>`).join('')}
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${[...new Set(C.map(card=>card.e))].map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
- <div class="grid">${list.map(card=>{const item=owned.get(card.id);return item&&item.quantity>0?`<div class="k" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no"><img src="${card.f}" loading="lazy"><span>#${card.id+1}</span></div>`}).join('')}</div>`
+ <div class="grid">${list.map(card=>{const item=owned.get(card.id);return item&&item.quantity>0?`<div class="k" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no"><img src="${cardImageUrl(card)}" loading="lazy"><span>#${card.id+1}</span></div>`}).join('')}</div>`
 }
 function col(){
  if(window.TCGOnlineUser){
@@ -185,7 +198,7 @@ function col(){
  <section class="box" style="max-width:none">Respaldo: <button class="chip" onclick="exportar()">Exportar colección</button> <button class="chip" onclick="imp.click()">Importar colección</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importar(this)"> <small>Se guarda solo en este navegador: exportá de vez en cuando para no perderla.</small></section>
  <section class="box" style="max-width:none">Ordenar por: ${[['r','Rareza'],['n','Nombre'],['o','Obtención']].map(([k,t])=>`<button class="chip${so==k?' on':''}" onclick="so='${k}';col()">${t}</button>`).join('')}
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${exs.map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
- <div class="grid">${l.map(c=>{const o=s.own[c.id];return o?`<div class="k" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id)}<b class="x">x${o.c}</b></div>`:`<div class="k no"><img src="${c.f}" loading="lazy"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
+ <div class="grid">${l.map(c=>{const o=s.own[c.id];return o?`<div class="k" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id)}<b class="x">x${o.c}</b></div>`:`<div class="k no"><img src="${cardImageUrl(c)}" loading="lazy"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
 function zoom(id){const c=C[id];
  md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id)}</div></div><div>${c.n} · ${c.e}</div>`;md.style.display='flex'}
 document.addEventListener('pointermove',e=>{const el=e.target.closest('[data-t]');if(!el)return;
