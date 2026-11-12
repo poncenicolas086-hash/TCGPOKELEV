@@ -43,8 +43,13 @@ main{max-width:1000px;margin:auto;padding:20px}
 .st i{display:block;height:4px;margin-top:5px;border-radius:3px;background:linear-gradient(90deg,var(--c) var(--p),#222 var(--p))}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:12px}
 .k{position:relative;aspect-ratio:5/7;border:3px solid var(--c);border-radius:8px;overflow:hidden;cursor:pointer;box-shadow:0 0 10px var(--c)}
-.k.no{border-color:var(--bd);box-shadow:none;cursor:default}.no img{filter:grayscale(1) brightness(.3)}
+.k.no{border-color:var(--bd);box-shadow:none;cursor:pointer}.no img{filter:grayscale(1) brightness(.3)}
 .no span{position:absolute;inset:auto 0 6px;text-align:center;color:var(--t2);font-size:12px}
+.collection-search{display:block;width:100%;height:44px;margin:0 0 12px;padding:0 14px;background:#0c1118;color:var(--tx);border:1px solid var(--bd);border-radius:7px;font:inherit;font-size:14px}
+.collection-search::placeholder{color:var(--t2)}.collection-search:focus{outline:2px solid #ffcb0588;border-color:var(--y)}
+.trade-card-zoom{flex:0 0 44px;width:44px;height:62px;padding:0;border:0;border-radius:4px;background:transparent;overflow:hidden;cursor:zoom-in}
+.trade-card-zoom img{display:block;width:100%;height:100%;object-fit:cover}
+.trade-card-zoom:hover{box-shadow:0 0 12px var(--y)}
 .x{position:absolute;right:5px;bottom:5px;background:#000b;padding:1px 6px;border-radius:6px;font-size:12px}
 #md{position:fixed;inset:0;background:#000d;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:20;perspective:900px}
 #ts{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1B2230;border:1px solid var(--y);padding:10px 20px;border-radius:20px;opacity:0;transition:opacity .3s;z-index:30;pointer-events:none}
@@ -221,9 +226,9 @@ function colOnline(rows){
  const list=sortCards(collectionCards.slice(),collectionObtainedAt);
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Colección online</h3><small>Sincronizada con tu cuenta · Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const total=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return total?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/total*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${total}<i></i></div>`:''}).join('')}</div></section>
- <section class="box" style="max-width:none"><input class="trade-search" id="collectionSearch" value="${escapeAttribute(q)}" placeholder="Buscar por nombre o número de carta"><div data-sort-controls>${sortControls()}</div>
+ <section class="box" style="max-width:none"><input class="collection-search" id="collectionSearch" type="search" value="${escapeAttribute(q)}" placeholder="Buscar por nombre o número de carta" aria-label="Buscar cartas por nombre o número"><div data-sort-controls>${sortControls()}</div>
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${[...new Set(C.map(card=>card.e))].map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
- <div class="grid">${list.map((card,index)=>{const item=owned.get(card.id),loading=index<12?'eager':'lazy';return item&&item.quantity>0?`<div class="k" data-card-id="${card.id}" style="--c:${COL[card.r]}" onclick="zoom(${card.id})">${face(card.id,loading)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no" data-card-id="${card.id}"><img src="${cardImageUrl(card)}" loading="${loading}"><span>#${card.id+1}</span></div>`}).join('')}</div>`
+ <div class="grid">${list.map((card,index)=>{const item=owned.get(card.id),loading=index<12?'eager':'lazy';return item&&item.quantity>0?`<div class="k" role="button" tabindex="0" data-card-id="${card.id}" style="--c:${COL[card.r]}" onclick="zoom(${card.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zoom(${card.id})}">${face(card.id,loading)}<b class="x">x${item.quantity}</b></div>`:`<div class="k no" role="button" tabindex="0" data-card-id="${card.id}" onclick="zoom(${card.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zoom(${card.id})}"><img src="${cardImageUrl(card)}" loading="${loading}" alt="${cardTitle(card)}"><span>#${card.id+1}</span></div>`}).join('')}</div>`
 }
 function col(){
  if(window.TCGOnlineUser){
@@ -239,11 +244,11 @@ function col(){
  m.innerHTML=`<section class="box" style="max-width:none"><h3>Estadísticas de colección</h3><small>Cartas únicas: <b>${own.length}</b> / ${C.length}</small>
  <div class="st">${R.slice().reverse().map(r=>{const t=C.filter(c=>c.r==r).length,o=own.filter(c=>c.r==r).length;return t?`<div style="border-color:${COL[r]}66;--c:${COL[r]};--p:${o/t*100}%"><b style="color:${COL[r]}">${r}</b> ${o}/${t}<i></i></div>`:''}).join('')}</div></section>
  <section class="box" style="max-width:none">Respaldo: <button class="chip" onclick="exportar()">Exportar colección</button> <button class="chip" onclick="imp.click()">Importar colección</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importar(this)"> <small>Se guarda solo en este navegador: exportá de vez en cuando para no perderla.</small></section>
- <section class="box" style="max-width:none"><input class="trade-search" id="collectionSearch" value="${escapeAttribute(q)}" placeholder="Buscar por nombre o número de carta"><div data-sort-controls>${sortControls()}</div>
+ <section class="box" style="max-width:none"><input class="collection-search" id="collectionSearch" type="search" value="${escapeAttribute(q)}" placeholder="Buscar por nombre o número de carta" aria-label="Buscar cartas por nombre o número"><div data-sort-controls>${sortControls()}</div>
  <select onchange="ex=this.value;col()"><option value="">Todas las expansiones</option>${exs.map(e=>`<option${e==ex?' selected':''}>${e}</option>`).join('')}</select></section>
- <div class="grid">${l.map((c,index)=>{const o=s.own[c.id],loading=index<12?'eager':'lazy';return o?`<div class="k" data-card-id="${c.id}" style="--c:${COL[c.r]}" onclick="zoom(${c.id})">${face(c.id,loading)}<b class="x">x${o.c}</b></div>`:`<div class="k no" data-card-id="${c.id}"><img src="${cardImageUrl(c)}" loading="${loading}"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
-function zoom(id){const c=C[id];
- md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id)}</div></div><div><b>${cardTitle(c)}</b> · ${c.n} · ${c.e}</div>`;md.style.display='flex'}
+ <div class="grid">${l.map((c,index)=>{const o=s.own[c.id],loading=index<12?'eager':'lazy';return o?`<div class="k" role="button" tabindex="0" data-card-id="${c.id}" style="--c:${COL[c.r]}" onclick="zoom(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zoom(${c.id})}">${face(c.id,loading)}<b class="x">x${o.c}</b></div>`:`<div class="k no" role="button" tabindex="0" data-card-id="${c.id}" onclick="zoom(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();zoom(${c.id})}"><img src="${cardImageUrl(c)}" loading="${loading}" alt="${cardTitle(c)}"><span>#${c.id+1}</span></div>`}).join('')}</div>`}
+function zoom(id){const c=C[id];if(!c)return;
+ md.innerHTML=`<div class="c big" data-t><div class="fr${hi(id)?' holo':''}" style="transform:none;--c:${COL[c.r]}">${face(id,'eager')}</div></div><div><b>${cardTitle(c)}</b> · ${c.n} · ${c.e} · ${c.r}</div>`;md.style.display='flex'}
 document.addEventListener('input',event=>{
  if(event.target.id!=='collectionSearch')return;
  q=event.target.value.trim().toLocaleLowerCase();

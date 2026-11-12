@@ -49,7 +49,7 @@ const toast = message => {
 function cardRow(row, quantity, controls = '') {
   const card = cardInfo(row);
   return `<div class="trade-row">
-    <img src="${h(cardImage(row))}" alt="${h(cardName(card))}" loading="lazy">
+    <button class="trade-card-zoom" type="button" onclick="zoom(${Number(card.id)})" aria-label="Ver ${h(cardName(card))} en grande"><img src="${h(cardImage(row))}" alt="${h(cardName(card))}" loading="lazy"></button>
     <span class="trade-card-copy"><b>${h(cardName(card))}</b><small>${h(card.n)} · ${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r || 'Carta')}</i></small></span>
     ${controls || `<span class="trade-qty">x${h(quantity)}</span>`}
   </div>`;
@@ -127,7 +127,7 @@ function pickerRows(kind, rows) {
     const card = cardInfo(row);
     const qty = selection[card.id] || 0;
     const max = kind === 'offer' ? available(row) : 99;
-    return `<div class="trade-row"><img src="${h(cardImage(row))}" alt="${h(cardName(card))}" loading="lazy">
+    return `<div class="trade-row"><button class="trade-card-zoom" type="button" onclick="zoom(${Number(card.id)})" aria-label="Ver ${h(cardName(card))} en grande"><img src="${h(cardImage(row))}" alt="${h(cardName(card))}" loading="lazy"></button>
       <span class="trade-card-copy"><b>${h(cardName(card))}</b><small>${h(card.n)} · ${h(card.e)} · <i style="color:${rarityColor[card.r] || 'var(--t2)'}">${h(card.r)}</i>${kind === 'offer' ? ` · Disponibles: ${max}` : ''}</small></span>
       <span class="trade-stepper" data-kind="${kind}" data-id="${card.id}"><button data-action="decrease" data-kind="${kind}" data-id="${card.id}" aria-label="Quitar una copia" ${qty <= 0 ? 'disabled' : ''}>−</button><b data-quantity>${qty}</b><button data-action="increase" data-kind="${kind}" data-id="${card.id}" data-max="${max}" aria-label="Agregar una copia" ${qty >= max ? 'disabled' : ''}>+</button></span>
     </div>`;
