@@ -101,10 +101,13 @@ function cardImageUrl(card){
  const source=String(card?.f||'');
  const storageBase=window.TCGStorageBase||STORAGE,marker='/storage/v1/object/public/cartas/';
  const markerIndex=source.indexOf(marker);
- if(markerIndex>=0)return storageBase+source.slice(markerIndex+marker.length);
+ if(markerIndex>=0){
+  const key=source.slice(markerIndex+marker.length);
+  return storageBase+(key.startsWith('cartas/')?'':'cartas/')+key;
+ }
  if(/^https?:\/\//i.test(source))return source;
  const path=source.replace(/^(?:\.\/|\/)?cartas\//i,'').replace(/\.(?:png|jpe?g)$/i,'.webp');
- return storageBase+path.split('/').map(segment=>{
+ return storageBase+'cartas/'+path.split('/').map(segment=>{
   try{return encodeURIComponent(decodeURIComponent(segment))}catch{return encodeURIComponent(segment)}
  }).join('/');
 }
